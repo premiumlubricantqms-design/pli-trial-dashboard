@@ -1,0 +1,8 @@
+.env
+*.conf
+*.xlsx
+*.xls
+storage/
+__pycache__/
+.venv/
+*.pyc
