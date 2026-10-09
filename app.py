@@ -190,6 +190,7 @@ def sync_once():
     if not sync_lock.acquire(blocking=False):
         return
     target = DATA / 'incoming.xlsx'
+    failure_code = 'config_invalid'
     try:
         with lock:
             state['last_checked'] = now()
@@ -198,24 +199,41 @@ def sync_once():
                 state['connected'] = False
                 state['error'] = 'not_configured'
             return
+        failure_code = 'download_failed'
         # Fixed argument list, no shell. Only downloads the configured source file.
         proc = subprocess.run(['rclone', 'copyto', REMOTE + ':' + FILE_PATH, str(target),
                                '--config', str(CONFIG), '--max-size', '32M',
                                '--retries', '2', '--low-level-retries', '2', '--log-level', 'ERROR'],
-                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=150)
-        if proc.returncode or not target.is_file() or target.stat().st_size > MAX_BYTES:
+                              stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=150)
+        if proc.returncode:
+            # Inspect in memory only; expose fixed categories, never raw output.
+            detail = (proc.stderr or b'').decode('utf-8', errors='replace').lower()
+            if any(term in detail for term in ('invalid_grant', 'unauthorized', 'invalid_client', 'token expired', "couldn't fetch token")):
+                failure_code = 'authentication_failed'
+            elif any(term in detail for term in ('directory not found', 'object not found', 'itemnotfound')):
+                failure_code = 'file_not_found'
             raise ValueError('OneDrive download failed')
+        if not target.is_file() or target.stat().st_size > MAX_BYTES:
+            failure_code = 'download_empty_or_oversized'
+            raise ValueError('OneDrive download failed')
+        failure_code = 'workbook_invalid'
         data = target.read_bytes()
         validate_workbook(data)
         digest = hashlib.sha256(data).hexdigest()
         with lock:
             snapshot = data
-            state.update(connected=True, digest=digest, last_success=now(), error=None)
+            state.update(connected=True, digest=digest, last_success=now(), error=None, failure_stage=None)
+    except subprocess.TimeoutExpired:
+        with lock:
+            state.update(connected=False, error='sync_failed', failure_stage='download_timeout')
+        app.logger.warning('OneDrive sync: download_timeout')
     except Exception:
         # Never expose command output, tokens, paths, or workbook content in logs/API.
         with lock:
             state['connected'] = False
             state['error'] = 'sync_failed'
+            state['failure_stage'] = failure_code
+        app.logger.warning('OneDrive sync: %s', failure_code)
     finally:
         target.unlink(missing_ok=True)
         sync_lock.release()
