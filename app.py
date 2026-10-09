@@ -192,8 +192,8 @@ def safe_download_diagnostic(stderr, returncode):
     vocabulary = set('failed error fatal creating create file system config configuration section remote onedrive drive personal business invalid unsupported unknown option flag hash type auto quickxor sha1 token refresh expired expiry authentication authorization access denied forbidden permission scope client grant json parse parsing decode decoding unexpected character end input eof empty missing not found directory object item download downloading copy copying transfer checksum mismatch corrupted size network timeout connection connect refused reset dns lookup tls certificate resolve resolving host throttled rate limit too many requests service unavailable unauthorized encrypted password decrypt decryption malformed'.split())
     # Exact whole-word membership: arbitrary identifiers, URLs, tokens and paths are excluded.
     words = [word for word in re.findall(r'[a-z]+', detail) if word in vocabulary]
-    codes = sorted(set(re.findall(r'aadsts[0-9]{5,8}', detail)))
-    statuses = sorted(set(re.findall(r'(?:status(?: code)?|http)[ :/]+([45][0-9]{2})', detail)))
+    codes = sorted(set(re.findall(r'\baadsts[0-9]{5,8}\b', detail)))
+    statuses = sorted(set(re.findall(r'(?:status(?: code)?|http)[ :/]+([45][0-9]{2})\b', detail)))
     return {'exit_code': int(returncode), 'error_words': words[-40:],
             'microsoft_codes': codes[:5], 'http_statuses': statuses[:5]}
 
