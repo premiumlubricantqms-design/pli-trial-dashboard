@@ -1,5 +1,8 @@
 'use strict';
 (() => {
+  const mobileStyles = document.createElement('link');
+  mobileStyles.rel = 'stylesheet'; mobileStyles.href = '/mobile.css';
+  document.head.append(mobileStyles);
   const en = document.documentElement.lang === 'en';
   const t = (th, english) => en ? english : th;
   const get = id => document.getElementById(id);

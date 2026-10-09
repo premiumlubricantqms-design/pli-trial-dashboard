@@ -1,0 +1,16 @@
+/* Phone layout shared by Thai and English dashboards. */
+@media screen and (max-width:600px){
+  main,.panel,.section,.overview,.source,.nav{min-width:0;max-width:100%}
+  .nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible;gap:.5rem;padding-bottom:0}
+  .nav a{min-width:0;white-space:normal;overflow-wrap:anywhere;justify-content:flex-start;line-height:1.5;padding:.65rem;gap:.45rem}
+  .nav a::before{flex-shrink:0}
+  .nav a:last-child{grid-column:1/-1}
+  .metric{min-width:0}
+  .metric::after{display:none}
+  .overview .metric:first-child{display:block;grid-column:1/-1}
+  .overview .metric:first-child .num{margin:.15rem 0;font-size:2.2rem}
+  .metric>span,.metric small{overflow-wrap:anywhere}
+  .source>.tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}
+  .source>.tools button,.source>.tools a{min-width:0;white-space:normal;text-align:center;overflow-wrap:anywhere}
+  .source>[role=status]{flex-basis:100%;min-width:0!important;overflow-wrap:anywhere}
+}

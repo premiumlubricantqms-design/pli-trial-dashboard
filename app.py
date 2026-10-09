@@ -137,6 +137,12 @@ def live_script():
     return send_file(ROOT / 'web/live.js')
 
 
+@app.get('/mobile.css')
+@protected
+def mobile_styles():
+    return send_file(ROOT / 'web/mobile.css', mimetype='text/css')
+
+
 @app.get('/api/status')
 @protected
 def sync_status():
