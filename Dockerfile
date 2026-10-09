@@ -1,5 +1,8 @@
+FROM rclone/rclone:1.75.1 AS rclone_binary
 FROM python:3.12-slim-bookworm
-RUN apt-get update && apt-get install -y --no-install-recommends rclone ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY --from=rclone_binary /usr/local/bin/rclone /usr/local/bin/rclone
+RUN rclone version
 WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
