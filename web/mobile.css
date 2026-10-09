@@ -1,11 +1,11 @@
 /* Company identity on both dashboard languages. */
-.brand .company-logo{display:block;width:144px;height:auto;flex-shrink:0;box-sizing:content-box;background:#fff;padding:8px 10px;border-radius:8px}
+.brand .company-logo{display:block;width:144px;height:auto;flex-shrink:0;box-sizing:border-box;background:transparent;padding:0;border-radius:0}
 .brand strong{display:none}
 .brand>div{min-width:0}
 .brand .latin{white-space:normal}
 @media screen and (max-width:600px){
  .brand{min-width:0;gap:.65rem}
- .brand .company-logo{width:108px;padding:6px 8px}
+ .brand .company-logo{width:124px;padding:0}
  .brand .latin{max-width:160px;line-height:1.5}
 }
 /* Phone layout shared by Thai and English dashboards. */
@@ -23,4 +23,10 @@
   .source>.tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}
   .source>.tools button,.source>.tools a{min-width:0;white-space:normal;text-align:center;overflow-wrap:anywhere}
   .source>[role=status]{flex-basis:100%;min-width:0!important;overflow-wrap:anywhere}
+}
+/* Keep the native date control inside its card on iPhone. */
+@media screen and (max-width:600px){
+ .intro .datebox{display:grid;grid-template-columns:minmax(0,1fr);width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+ .intro .datebox input[type="date"]{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-inline-size:0;-webkit-appearance:none;appearance:none;padding:.35rem .6rem}
+ .intro .datebox input[type="date"]::-webkit-date-and-time-value{min-width:0;text-align:center}
 }
