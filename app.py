@@ -216,7 +216,7 @@ def sync_once():
         failure_code = 'download_failed'
         # Fixed argument list, no shell. Only downloads the configured source file.
         proc = subprocess.run(['rclone', 'copyto', REMOTE + ':' + FILE_PATH, str(target),
-                               '--config', str(CONFIG), '--max-size', '32M',
+                               '--config', str(CONFIG),
                                '--retries', '2', '--low-level-retries', '2', '--log-level', 'ERROR'],
                               stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=150)
         if proc.returncode:
