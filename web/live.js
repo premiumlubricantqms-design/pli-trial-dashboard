@@ -3,6 +3,16 @@
   const mobileStyles = document.createElement('link');
   mobileStyles.rel = 'stylesheet'; mobileStyles.href = '/mobile.css';
   document.head.append(mobileStyles);
+  const brand = document.querySelector('.brand');
+  if (brand) {
+    const logo = document.createElement('img');
+    logo.src = '/brand-logo.png';
+    logo.alt = 'Premium Lubricant';
+    logo.className = 'company-logo';
+    logo.width = 2048; logo.height = 682;
+    brand.querySelector('.mark')?.replaceWith(logo);
+    brand.querySelector('strong')?.remove();
+  }
   const en = document.documentElement.lang === 'en';
   const t = (th, english) => en ? english : th;
   const get = id => document.getElementById(id);

@@ -1,3 +1,13 @@
+/* Company identity on both dashboard languages. */
+.brand .company-logo{display:block;width:144px;height:auto;flex-shrink:0;box-sizing:content-box;background:#fff;padding:8px 10px;border-radius:8px}
+.brand strong{display:none}
+.brand>div{min-width:0}
+.brand .latin{white-space:normal}
+@media screen and (max-width:600px){
+ .brand{min-width:0;gap:.65rem}
+ .brand .company-logo{width:108px;padding:6px 8px}
+ .brand .latin{max-width:160px;line-height:1.5}
+}
 /* Phone layout shared by Thai and English dashboards. */
 @media screen and (max-width:600px){
   main,.panel,.section,.overview,.source,.nav{min-width:0;max-width:100%}

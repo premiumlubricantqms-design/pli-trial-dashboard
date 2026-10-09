@@ -143,6 +143,12 @@ def mobile_styles():
     return send_file(ROOT / 'web/mobile.css', mimetype='text/css')
 
 
+@app.get('/brand-logo.png')
+@protected
+def company_logo():
+    return send_file(ROOT / 'web/brand-logo.png', mimetype='image/png')
+
+
 @app.get('/api/status')
 @protected
 def sync_status():
