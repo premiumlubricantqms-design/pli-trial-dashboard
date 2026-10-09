@@ -3,6 +3,7 @@ import configparser
 import hashlib
 import io
 import os
+import re
 import secrets
 import shutil
 import subprocess
@@ -185,6 +186,18 @@ def prepare_config():
     return True
 
 
+def safe_download_diagnostic(stderr, returncode):
+    """Return only predefined words and machine codes, never raw command text."""
+    detail = (stderr or b'').decode('utf-8', errors='replace').lower()
+    vocabulary = set('failed error fatal creating create file system config configuration section remote onedrive drive personal business invalid unsupported unknown option flag hash type auto quickxor sha1 token refresh expired expiry authentication authorization access denied forbidden permission scope client grant json parse parsing decode decoding unexpected character end input eof empty missing not found directory object item download downloading copy copying transfer checksum mismatch corrupted size network timeout connection connect refused reset dns lookup tls certificate resolve resolving host throttled rate limit too many requests service unavailable unauthorized encrypted password decrypt decryption malformed'.split())
+    # Exact whole-word membership: arbitrary identifiers, URLs, tokens and paths are excluded.
+    words = [word for word in re.findall(r'[a-z]+', detail) if word in vocabulary]
+    codes = sorted(set(re.findall(r'aadsts[0-9]{5,8}', detail)))
+    statuses = sorted(set(re.findall(r'(?:status(?: code)?|http)[ :/]+([45][0-9]{2})', detail)))
+    return {'exit_code': int(returncode), 'error_words': words[-40:],
+            'microsoft_codes': codes[:5], 'http_statuses': statuses[:5]}
+
+
 def sync_once():
     global snapshot
     if not sync_lock.acquire(blocking=False):
@@ -194,6 +207,7 @@ def sync_once():
     try:
         with lock:
             state['last_checked'] = now()
+            state['download_diagnostic'] = None
         if not prepare_config():
             with lock:
                 state['connected'] = False
@@ -206,6 +220,10 @@ def sync_once():
                                '--retries', '2', '--low-level-retries', '2', '--log-level', 'ERROR'],
                               stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=150)
         if proc.returncode:
+            diagnostic = safe_download_diagnostic(getattr(proc, 'stderr', b''), proc.returncode)
+            with lock:
+                state['download_diagnostic'] = diagnostic
+            app.logger.warning('OneDrive download diagnostic: %s', diagnostic)
             # Inspect in memory only; expose fixed categories, never raw output.
             detail = (proc.stderr or b'').decode('utf-8', errors='replace').lower()
             if any(term in detail for term in ('invalid_grant', 'unauthorized', 'invalid_client', 'token expired', "couldn't fetch token")):
@@ -227,13 +245,13 @@ def sync_once():
         with lock:
             state.update(connected=False, error='sync_failed', failure_stage='download_timeout')
         app.logger.warning('OneDrive sync: download_timeout')
-    except Exception:
+    except Exception as exc:
         # Never expose command output, tokens, paths, or workbook content in logs/API.
         with lock:
             state['connected'] = False
             state['error'] = 'sync_failed'
             state['failure_stage'] = failure_code
-        app.logger.warning('OneDrive sync: %s', failure_code)
+        app.logger.warning('OneDrive sync: %s (%s)', failure_code, type(exc).__name__)
     finally:
         target.unlink(missing_ok=True)
         sync_lock.release()
